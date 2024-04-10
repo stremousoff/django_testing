@@ -9,9 +9,9 @@ from news.models import Comment
 
 
 def test_user_can_create_comment(not_author_client, news_id, form_data):
-    """Проверить, что авторизированный пользователь может оставлять комментарии
-     к новостям.
-     """
+    """Проверить, что авторизированный пользователь может оставлять
+    комментарии к новостям.
+    """
     url = reverse('news:detail', args=(news_id,))
     response = not_author_client.post(url, data=form_data)
     assertRedirects(response, f'{url}#comments')
@@ -36,7 +36,7 @@ def test_create_comment_with_bad_words(not_author_client, news_id):
     url = reverse('news:detail', args=(news_id,))
     response = not_author_client.post(url, data=bad_words_data)
     assert Comment.objects.count() == 0
-    assertFormError(response,  form='form', field='text', errors=WARNING)
+    assertFormError(response, form='form', field='text', errors=WARNING)
 
 
 def test_author_can_edit_comment(author_client, comment, form_data):
@@ -67,7 +67,7 @@ def test_author_can_delete_comment(author_client, comment):
     assert Comment.objects.count() == count_comments - 1
 
 
-def test_not_author_can_not_delete_comment(not_author_client,  comment_id):
+def test_not_author_can_not_delete_comment(not_author_client, comment_id):
     """Проверить, что пользователь не может удалять чужие комментарии."""
     count_comments = Comment.objects.count()
     url = reverse('news:delete', args=(comment_id,))

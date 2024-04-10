@@ -8,11 +8,11 @@ from pytest_django.asserts import assertRedirects
 @pytest.mark.parametrize(
     ('name', 'id_news'),
     (
-            ('news:home', None),
-            ('users:login', None),
-            ('users:signup', None),
-            ('users:logout', None),
-            ('news:detail', pytest.lazy_fixture('news_id')),
+        ('news:home', None),
+        ('users:login', None),
+        ('users:signup', None),
+        ('users:logout', None),
+        ('news:detail', pytest.lazy_fixture('news_id')),
     )
 )
 def test_home_availability_for_anonymous_user(client, name, id_news):

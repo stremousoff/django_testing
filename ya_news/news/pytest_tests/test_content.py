@@ -42,8 +42,8 @@ def test_comment_order(client, author, news, comments_for_same_news):
 @pytest.mark.parametrize(
     'parametrized_client, expected_status',
     (
-            (pytest.lazy_fixture('client'), False),
-            (pytest.lazy_fixture('author_client'), True)
+        (pytest.lazy_fixture('client'), False),
+        (pytest.lazy_fixture('author_client'), True)
     ),
 )
 def test_form_unavailable_for_anonymous_users(

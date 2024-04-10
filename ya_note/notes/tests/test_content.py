@@ -35,8 +35,8 @@ class TestContent(TestCase):
         self.assertIn(
             self.note,
             object_list,
-            f'Проверьте что заметки пользователя передаются на страницу '
-            f'со списком заметок списке object_list в словаре context.'
+            'Проверьте что заметки пользователя передаются на страницу со '
+            'списком заметок списке object_list в словаре context.'
         )
 
     def test_only_notes_for_author_in_note_list_page(self):
@@ -48,8 +48,8 @@ class TestContent(TestCase):
         self.assertNotIn(
             self.note,
             object_list,
-            f'Проверьте что заметки одного пользователя не попадают в'
-            f'список заметок другого пользователя.'
+            'Проверьте что заметки одного пользователя не попадают в список '
+            'заметок другого пользователя.'
         )
 
     def test_available_form_for_page(self):

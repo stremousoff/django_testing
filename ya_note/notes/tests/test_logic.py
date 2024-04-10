@@ -44,7 +44,8 @@ class TestCreateNote(TestCase):
         )
 
     def test_auth_user_can_create_note(self):
-        """Проверить что зарегистрированный пользователь может создать заметку.
+        """Проверить что зарегистрированный пользователь может создавать
+        новую заметку.
         """
         self.auth_client.force_login(self.user)
         response = self.auth_client.post(
