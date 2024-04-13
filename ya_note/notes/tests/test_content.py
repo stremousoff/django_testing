@@ -2,6 +2,7 @@ from django.contrib.auth.models import User
 from django.test import Client, TestCase
 from django.urls import reverse
 
+from notes.forms import NoteForm
 from notes.models import Note
 
 
@@ -12,13 +13,18 @@ class TestContent(TestCase):
     TEXT = 'текст_заметки'
     AUTHOR = 'автор_заметки'
     USER = 'зарегистрированный_пользователь'
+    SLUG = 'slug'
+
+    NOTE_LIST_URL = reverse('notes:list')
+    ADD_NOTE_URL = reverse('notes:add')
+    EDIT_NOTE_URL = reverse('notes:edit', args=(SLUG,))
 
     @classmethod
     def setUpTestData(cls):
         cls.author = User.objects.create_user(username=cls.AUTHOR)
         cls.user = User.objects.create_user(username=cls.USER)
         cls.note = Note.objects.create(title=cls.TITLE, text=cls.TEXT,
-                                       author=cls.author)
+                                       author=cls.author, slug=cls.SLUG)
 
     def setUp(self):
         self.author_client = Client()
@@ -26,46 +32,38 @@ class TestContent(TestCase):
         self.user_client = Client()
         self.user_client.force_login(self.user)
 
-    def test_note_in_note_list_page(self):
-        """Проверка, что отдельная заметка передаётся на страницу со списком
-        заметок в списке object_list в словаре context.
-        """
-        response = self.author_client.get(reverse('notes:list'))
+    def test_note_in_note_list_page_for_author(self):
+        """Заметка должна быть в списке object_list в словаре context."""
+        response = self.author_client.get(self.NOTE_LIST_URL)
         object_list = response.context['object_list']
-        self.assertIn(
-            self.note,
-            object_list,
+        self.assertEqual(
+            len(object_list),
+            Note.objects.filter(author=self.author).count(),
             'Проверьте что заметки пользователя передаются на страницу со '
             'списком заметок списке object_list в словаре context.'
         )
+        note = object_list[0]
+        self.assertEqual(note.title, self.TITLE, 'Неверный заголовок')
+        self.assertEqual(note.text, self.TEXT, 'Текст заметки неверен.')
+        self.assertEqual(note.slug, self.SLUG, 'Slug заметки неверен.')
+        self.assertEqual(note.author, self.author, 'Автор неверен.')
 
     def test_only_notes_for_author_in_note_list_page(self):
-        """Проверка, что в список заметок одного пользователя не попадают
-        заметки другого пользователя.
-        """
-        response = self.user_client.get(reverse('notes:list'))
+        """Список заметок должен содержать только заметки одного автора."""
+        Note.objects.create(title=self.TITLE, text=self.TEXT, author=self.user)
+        response = self.author_client.get(self.NOTE_LIST_URL)
         object_list = response.context['object_list']
-        self.assertNotIn(
-            self.note,
-            object_list,
+        self.assertEqual(
+            len(object_list),
+            Note.objects.filter(author=self.author).count(),
             'Проверьте что заметки одного пользователя не попадают в список '
             'заметок другого пользователя.'
         )
 
     def test_available_form_for_page(self):
-        """Проверка, что на страницы создания и редактирования заметки
-        отображается форма.
-        """
-        names = (
-            ('notes:add', ()),
-            ('notes:edit', (self.note.slug,)),
-        )
-        for name, args in names:
+        """Страницы создания и редактирования заметки содержит форму."""
+        urls = (self.ADD_NOTE_URL, self.EDIT_NOTE_URL)
+        for url in urls:
             with self.subTest():
-                url = reverse(name, args=args)
                 response = self.author_client.get(url)
-                self.assertIn(
-                    'form',
-                    response.context,
-                    f'Проверьте что на странице {url} отображается форма.'
-                )
+                self.assertIsInstance(response.context['form'], NoteForm)

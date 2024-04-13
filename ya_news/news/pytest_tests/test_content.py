@@ -1,36 +1,32 @@
 import pytest
 
-from django.urls import reverse
+from news.forms import CommentForm
+from yanews.settings import NEWS_COUNT_ON_HOME_PAGE
 
-from yanews import settings
 
-
-def test_news_per_main_page(news_for_main_page, client):
+@pytest.mark.django_db
+def test_news_per_main_page(news_for_main_page, client, url_news_home):
     """Проверить, что на главной странице выводится десять новостей."""
-    url = reverse('news:home')
-    response = client.get(url)
+    response = client.get(url_news_home)
     object_list = response.context['object_list']
-    assert len(object_list) == settings.NEWS_COUNT_ON_HOME_PAGE
+    assert len(object_list) == NEWS_COUNT_ON_HOME_PAGE
 
 
-def test_sort_news_for_main_page(news_for_main_page, client):
-    """Проверить, что новости отсортированы от самой свежей к самой старой
-    на главной странице.
-    """
-    url = reverse('news:home')
-    response = client.get(url)
+@pytest.mark.django_db
+def test_sort_news_for_main_page(news_for_main_page, client, url_news_home):
+    """Новости должны быть отсортированы от самой свежей к самой старой."""
+    response = client.get(url_news_home)
     object_list = response.context['object_list']
     all_dates = [object_news.date for object_news in object_list]
     sorted_dates = sorted(all_dates, reverse=True)
     assert all_dates == sorted_dates
 
 
-def test_comment_order(client, author, news, comments_for_same_news):
-    """Комментарии на странице отдельной новости отсортированы
-    в хронологическом порядке: старые в начале списка, новые — в конце.
-    """
-    url = reverse('news:detail', args=(news.id,))
-    response = client.get(url)
+def test_comment_order(
+        client, author, news, comments_for_same_news, url_news_detail
+):
+    """Комментарии должны быть отсортированы в хронологическом порядке."""
+    response = client.get(url_news_detail)
     assert 'news' in response.context
     news = response.context['news']
     all_comments = news.comment_set.all()
@@ -39,18 +35,19 @@ def test_comment_order(client, author, news, comments_for_same_news):
     assert all_dates == sorted_dates
 
 
+@pytest.mark.django_db
 @pytest.mark.parametrize(
-    'parametrized_client, expected_status',
+    'parametrized_client, expected_status, form',
     (
-        (pytest.lazy_fixture('client'), False),
-        (pytest.lazy_fixture('author_client'), True)
+        (pytest.lazy_fixture('client'), False, None),
+        (pytest.lazy_fixture('author_client'), True, CommentForm),
     ),
 )
 def test_form_unavailable_for_anonymous_users(
-        parametrized_client, expected_status, news):
-    """Проверить, что анонимному пользователю недоступна форма для отправки
-    комментария на странице отдельной новости, а авторизованному доступна.
-    """
-    url = reverse('news:detail', args=(news.id,))
-    response = parametrized_client.get(url)
+        parametrized_client, expected_status, form, url_news_detail
+):
+    """Проверка (не)доступности формы для разных пользователей."""
+    response = parametrized_client.get(url_news_detail)
     assert ('form' in response.context) == expected_status
+    if form:
+        assert isinstance(response.context['form'], form)
