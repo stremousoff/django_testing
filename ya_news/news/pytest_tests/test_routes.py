@@ -29,7 +29,7 @@ def test_pages_availability_for_different_user(
 
 @pytest.mark.parametrize(
     'url', (lf('url_comment_delete'), lf('url_comment_edit'))
-    )
+)
 def test_redirect_for_anonymous_user(url, url_users_login, client):
     """Проверка редиректов для анонимного пользователя."""
     expected_url = f'{url_users_login}?next={url}'
