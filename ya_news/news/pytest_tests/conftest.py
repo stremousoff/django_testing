@@ -77,7 +77,7 @@ def news_for_main_page():
 def comments_for_same_news(author, news):
     """Фикстура для создания 2 комментариев к одной новости."""
     for index in range(2):
-        comment_object = Comment.objects.create(
+        Comment.objects.create(
             news_id=news.id,
             author_id=author.id,
             text=f'Текст_комментария{index}',
