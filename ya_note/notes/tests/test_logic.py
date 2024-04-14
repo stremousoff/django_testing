@@ -86,7 +86,7 @@ class TestCreateNote(TestCase):
             'form',
             'slug',
             errors=self.form_data.get('slug') + WARNING,
-            msg_prefix='Убедитесь, что нельзя создать две заметки с ' 
+            msg_prefix='Убедитесь, что нельзя создать две заметки с '
                        'одинаковым slug.'
         )
         self.assertEqual(
