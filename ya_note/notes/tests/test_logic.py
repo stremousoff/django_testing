@@ -75,7 +75,7 @@ class TestCreateNote(TestCase):
 
     def test_unique_slug(self):
         """Проверить, что невозможно создать две заметки с одинаковым slug."""
-        Note.objects.create(**self.form_data)
+        Note.objects.create(author=self.user, **self.form_data)
         notes_count = Note.objects.count()
         response = self.auth_client.post(
             self.ADD_NOTE_URL,
@@ -86,7 +86,7 @@ class TestCreateNote(TestCase):
             'form',
             'slug',
             errors=self.form_data.get('slug') + WARNING,
-            msg_prefix='Убедитесь, что нельзя создать две заметки с '
+            msg_prefix='Убедитесь, что нельзя создать две заметки с ' 
                        'одинаковым slug.'
         )
         self.assertEqual(
