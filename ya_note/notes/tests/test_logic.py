@@ -28,7 +28,6 @@ class TestCreateNote(TestCase):
         cls.form_data = {
             'title': cls.TITLE,
             'text': cls.TEXT,
-            'author': cls.user,
             'slug': cls.SLUG,
         }
 
@@ -50,7 +49,7 @@ class TestCreateNote(TestCase):
 
     def test_auth_user_can_create_note(self):
         """Зарегистрированный пользователь может создавать заметку."""
-        notes_count = Note.objects.count()
+        Note.objects.all().delete()
         response = self.auth_client.post(self.ADD_NOTE_URL,
                                          data=self.form_data)
         self.assertRedirects(
@@ -62,7 +61,7 @@ class TestCreateNote(TestCase):
         )
         self.assertEqual(
             Note.objects.count(),
-            notes_count + 1,
+            1,
             'Проверить, что авторизированный пользователь может создать '
             'заметку.'
         )
@@ -100,11 +99,10 @@ class TestCreateNote(TestCase):
         """Проверить если slug не заполнен, то он формируется из title."""
         self.form_data.pop('slug')
         Note.objects.all().delete()
-        notes_count = Note.objects.count()
         self.auth_client.post(self.ADD_NOTE_URL, data=self.form_data)
         self.assertEqual(
             Note.objects.count(),
-            notes_count + 1,
+            1,
             'Проверить что слаг генерируется автоматически из title'
         )
         note = Note.objects.last()
@@ -160,11 +158,6 @@ class TestNoteEdit(TestCase):
     def test_author_can_edit_note(self):
         """Пользователь может редактировать свои заметки."""
         count_notes = Note.objects.count()
-        self.assertEqual(
-            count_notes,
-            1,
-            'Убедитесь, что заметка создана и она одна'
-        )
         response = self.author_client.post(self.EDIT_URL, data=self.form_data)
         self.assertRedirects(
             response,
@@ -181,6 +174,7 @@ class TestNoteEdit(TestCase):
         self.assertEqual(note.slug, self.form_data.get('slug'),
                          'Slug неверен')
         self.assertEqual(note.author, self.form_data.get('author'),)
+        self.assertEqual(Note.objects.count(), count_notes)
 
     def test_author_can_delete_note(self):
         """Пользователь может удалять свои заметки."""

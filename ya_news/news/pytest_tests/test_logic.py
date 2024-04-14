@@ -9,14 +9,17 @@ from news.models import Comment
 
 
 def test_user_can_create_comment(
-        user_client, news, form_data, url_news_detail
+        user_client, news, form_data, url_news_detail, user, author
 ):
     """Авторизированный пользователь может оставлять комментарии к новостям."""
     count_comments = Comment.objects.count()
     response = user_client.post(url_news_detail, data=form_data)
     assertRedirects(response, f'{url_news_detail}#comments')
     assert Comment.objects.count() == count_comments + 1
-    assert Comment.objects.last().text == form_data['text']
+    new_comment = Comment.objects.last()
+    assert new_comment.text == form_data['text']
+    assert new_comment.author == user
+    assert new_comment.news == news
 
 
 @pytest.mark.django_db
@@ -39,28 +42,32 @@ def test_create_comment_with_bad_words(user_client, news, url_news_detail):
     assertFormError(response, form='form', field='text', errors=WARNING)
 
 
-def test_author_can_edit_comment(
-        author_client, comment, form_data, url_comment_edit, url_news_detail
-):
+def test_author_can_edit_comment(author_client, comment, form_data,
+                                 url_comment_edit, url_news_detail,
+                                 author, news):
     """Проверить, что автор может редактировать свои комментарии."""
+    count_comments = Comment.objects.count()
     response = author_client.post(url_comment_edit, form_data)
     assertRedirects(response, f'{url_news_detail}#comments')
-    assert Comment.objects.last().text == form_data['text']
-    assert Comment.objects.last().author_id == comment.author_id
-    assert Comment.objects.last().news_id == comment.news_id
+    assert Comment.objects.count() == count_comments
+    new_comment = Comment.objects.last()
+    assert new_comment.text == form_data['text']
+    assert new_comment.author == comment.author
+    assert new_comment.news == comment.news
 
 
 def test_not_author_can_not_edit_comment(
-        user_client, comment, form_data, url_comment_edit
+        user_client, comment, form_data, url_comment_edit, author, news
 ):
     """Проверить, что пользователь не может редактировать чужие комментарии."""
     count_comments = Comment.objects.count()
     response = user_client.post(url_comment_edit, form_data)
     assert response.status_code == HTTPStatus.NOT_FOUND
     assert Comment.objects.count() == count_comments
-    assert Comment.objects.last().text == comment.text
-    assert Comment.objects.last().author_id == comment.author_id
-    assert Comment.objects.last().news_id == comment.news_id
+    new_comment = Comment.objects.last()
+    assert new_comment.text == comment.text
+    assert new_comment.author == author
+    assert new_comment.news == news
 
 
 def test_author_can_delete_comment(

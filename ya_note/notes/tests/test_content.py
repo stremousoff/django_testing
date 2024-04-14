@@ -37,25 +37,24 @@ class TestContent(TestCase):
         response = self.author_client.get(self.NOTE_LIST_URL)
         object_list = response.context['object_list']
         self.assertEqual(
-            len(object_list),
-            Note.objects.filter(author=self.author).count(),
+            object_list.count(),
+            1,
             'Проверьте что заметки пользователя передаются на страницу со '
             'списком заметок списке object_list в словаре context.'
         )
         note = object_list[0]
-        self.assertEqual(note.title, self.TITLE, 'Неверный заголовок')
-        self.assertEqual(note.text, self.TEXT, 'Текст заметки неверен.')
-        self.assertEqual(note.slug, self.SLUG, 'Slug заметки неверен.')
-        self.assertEqual(note.author, self.author, 'Автор неверен.')
+        self.assertEqual(note.title, self.note.title, 'Неверный заголовок')
+        self.assertEqual(note.text, self.note.text, 'Текст заметки неверен.')
+        self.assertEqual(note.slug, self.note.slug, 'Slug заметки неверен.')
+        self.assertEqual(note.author, self.note.author, 'Автор неверен.')
 
     def test_only_notes_for_author_in_note_list_page(self):
         """Список заметок должен содержать только заметки одного автора."""
-        Note.objects.create(title=self.TITLE, text=self.TEXT, author=self.user)
-        response = self.author_client.get(self.NOTE_LIST_URL)
+        response = self.user_client.get(self.NOTE_LIST_URL)
         object_list = response.context['object_list']
         self.assertEqual(
-            len(object_list),
-            Note.objects.filter(author=self.author).count(),
+            object_list.count(),
+            0,
             'Проверьте что заметки одного пользователя не попадают в список '
             'заметок другого пользователя.'
         )
@@ -66,4 +65,5 @@ class TestContent(TestCase):
         for url in urls:
             with self.subTest():
                 response = self.author_client.get(url)
+                self.assertIn('form', response.context)
                 self.assertIsInstance(response.context['form'], NoteForm)

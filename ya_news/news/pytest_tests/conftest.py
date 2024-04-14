@@ -1,12 +1,12 @@
 from datetime import timedelta
-
 import pytest
+
+from django.conf import settings
 from django.test.client import Client
 from django.urls import reverse
 from django.utils import timezone
 
 from news.models import Comment, News
-from yanews.settings import NEWS_COUNT_ON_HOME_PAGE
 
 
 @pytest.fixture
@@ -68,7 +68,7 @@ def news_for_main_page():
             text='Просто текст.',
             date=today - timedelta(days=index)
         )
-        for index in range(NEWS_COUNT_ON_HOME_PAGE + 1)
+        for index in range(settings.NEWS_COUNT_ON_HOME_PAGE + 1)
     ]
     News.objects.bulk_create(all_news)
 
@@ -82,7 +82,6 @@ def comments_for_same_news(author, news):
             author_id=author.id,
             text=f'Текст_комментария{index}',
         )
-        comment_object.save()
 
 
 @pytest.fixture

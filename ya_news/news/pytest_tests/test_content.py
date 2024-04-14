@@ -1,18 +1,23 @@
 import pytest
 
+from django.conf import settings
+
 from news.forms import CommentForm
-from yanews.settings import NEWS_COUNT_ON_HOME_PAGE
 
 
-@pytest.mark.django_db
+pytestmark = pytest.mark.django_db
+
+ANONYMOUS_CLIENT = pytest.lazy_fixture('client')
+AUTHOR_CLIENT = pytest.lazy_fixture('author_client')
+
+
 def test_news_per_main_page(news_for_main_page, client, url_news_home):
     """Проверить, что на главной странице выводится десять новостей."""
     response = client.get(url_news_home)
     object_list = response.context['object_list']
-    assert len(object_list) == NEWS_COUNT_ON_HOME_PAGE
+    assert len(object_list) == settings.NEWS_COUNT_ON_HOME_PAGE
 
 
-@pytest.mark.django_db
 def test_sort_news_for_main_page(news_for_main_page, client, url_news_home):
     """Новости должны быть отсортированы от самой свежей к самой старой."""
     response = client.get(url_news_home)
@@ -35,12 +40,11 @@ def test_comment_order(
     assert all_dates == sorted_dates
 
 
-@pytest.mark.django_db
 @pytest.mark.parametrize(
     'parametrized_client, expected_status, form',
     (
-        (pytest.lazy_fixture('client'), False, None),
-        (pytest.lazy_fixture('author_client'), True, CommentForm),
+        (ANONYMOUS_CLIENT, False, None),
+        (AUTHOR_CLIENT, True, CommentForm),
     ),
 )
 def test_form_unavailable_for_anonymous_users(
