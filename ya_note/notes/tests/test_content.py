@@ -63,7 +63,7 @@ class TestContent(TestCase):
         """Страницы создания и редактирования заметки содержит форму."""
         urls = (self.ADD_NOTE_URL, self.EDIT_NOTE_URL)
         for url in urls:
-            with self.subTest():
+            with self.subTest(url=url):
                 response = self.author_client.get(url)
                 self.assertIn('form', response.context)
                 self.assertIsInstance(response.context['form'], NoteForm)

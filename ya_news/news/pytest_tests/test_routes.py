@@ -18,7 +18,9 @@ USER_CLIENT = lf('user_client')
 AUTHOR_CLIENT = lf('author_client')
 
 
-@pytest.mark.django_db
+pytestmark = pytest.mark.django_db
+
+
 @pytest.mark.parametrize(
     ('url', 'parametrized_client', 'expected_status'),
     (

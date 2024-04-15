@@ -86,7 +86,7 @@ class TestCreateNote(TestCase):
             'form',
             'slug',
             errors=self.form_data.get('slug') + WARNING,
-            msg_prefix='Убедитесь, что нельзя создать две заметки с '
+            msg_prefix='Убедитесь, что нельзя создать две заметки с ' 
                        'одинаковым slug.'
         )
         self.assertEqual(
@@ -126,7 +126,7 @@ class TestNoteEdit(TestCase):
     NOTE_TEXT = 'текст_заметки'
     NEW_NOTE_TEXT = 'новый_текст_заметки'
     SLUG = 'slug'
-    NEW_SLUG = 'newslug'
+    NEW_SLUG = 'new_slug'
     AUTHOR = 'автор_заметки'
     USER = 'зарегистрированный_пользователь'
 
@@ -199,17 +199,17 @@ class TestNoteEdit(TestCase):
     def test_user_cant_edit_note_of_another_user(self):
         """Пользователь не может редактировать чужие заметки."""
         count_notes = Note.objects.count()
-        self.assertEqual(
-            count_notes,
-            1,
-            'Убедитесь, что заметка создана и она одна'
-        )
         response = self.user_client.post(self.EDIT_URL, data=self.form_data)
         self.assertEqual(
             response.status_code,
             HTTPStatus.NOT_FOUND,
             'Убедитесь, что заметка не доступна для редактирования '
             'не автором заметки'
+        )
+        self.assertEqual(
+            count_notes,
+            1,
+            'Убедитесь, что заметка создана и она одна'
         )
         note = Note.objects.get()
         self.assertEqual(note.title, self.note.title, 'Заголовок неверен')
